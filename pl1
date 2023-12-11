@@ -1,0 +1,80 @@
+<?php
+
+class NormalizeMatrixPlugin {
+
+    public function __construct() {
+        add_action('admin_menu', array($this, 'add_menu_page'));
+    }
+
+    public function add_menu_page() {
+        add_menu_page(
+            'Нормированная матрица',
+            'Нормированная матрица',
+            'manage_options',
+            'normalize-matrix',
+            array($this, 'render_form'),
+            'dashicons-chart-pie'
+        );
+    }
+
+    public function render_form() {
+        echo '<div class="wrap">';
+        echo '<h2>Нормированная матрица</h2>';
+        echo '<form action="" method="post">';
+        echo '<table class="form-table">';
+        echo '<tr>';
+        echo '<th>Данные</th>';
+        echo '<td>';
+        echo '<textarea name="data" rows="10" cols="50"></textarea>';
+        echo '</td>';
+        echo '</tr>';
+        echo '</table>';
+        echo '<input type="submit" value="Вычислить">';
+        echo '</form>';
+        echo '</div>';
+    }
+
+    public function process_form() {
+        if (isset($_POST['data'])) {
+            $data = $_POST['data'];
+            $normalized_matrix = normalize_matrix($data);
+            echo '<table border="1">';
+            foreach ($normalized_matrix as $row) {
+                echo '<tr>';
+                foreach ($row as $value) {
+                    echo '<td>$value</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</table>';
+        }
+    }
+
+}
+
+function normalize_matrix($data) {
+    $data = explode("\n", $data);
+    $matrix = array();
+    foreach ($data as $row) {
+        $row = explode(" ", $row);
+        $matrix[] = $row;
+    }
+
+    $max_values = array();
+    foreach ($matrix[0] as $key => $value) {
+        $max_values[$key] = max(array_column($matrix, $key));
+    }
+
+    $normalized_matrix = array();
+    foreach ($matrix as $row) {
+        $normalized_row = array();
+        foreach ($row as $key => $value) {
+            $normalized_row[$key] = $value / $max_values[$key];
+        }
+        $normalized_matrix[] = $normalized_row;
+    }
+
+    return $normalized_matrix;
+}
+
+$normalize_matrix_plugin = new NormalizeMatrixPlugin();
